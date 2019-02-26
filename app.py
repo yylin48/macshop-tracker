@@ -11,9 +11,8 @@ from datetime import datetime ,timedelta
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 
-###channel token
+###secret data
 line_bot_api = LineBotApi('channel token')
-###secret
 handler = WebhookHandler('secret')
 your_id = 'your id'
 
