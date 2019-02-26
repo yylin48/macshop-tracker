@@ -9,11 +9,7 @@ you can modify:
 	
 site-packages: 
 
-	heroku 
 	apscheduler 
 	bs4
-	requests
 	line-bot-sdk
-	datetime
-	time
 
