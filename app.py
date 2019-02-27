@@ -16,17 +16,15 @@ line_bot_api = LineBotApi('channel token')
 handler = WebhookHandler('secret')
 your_id = 'your id'
 
-
-###scheduler
-sched = BlockingScheduler()
-#time
-onehour = timedelta(hours = 1)
-oneday = timedelta(days = 1)
-#config
+#data can be modified
 content = "iphone"
 url = 'https://www.ptt.cc/bbs/macshop/index.html'
 
-
+###scheduler
+sched = BlockingScheduler()
+#time unit
+onehour = timedelta(hours=1)
+oneday = timedelta(days=1)
 
 def getsoup(url):
     res = requests.get(url)
@@ -42,24 +40,24 @@ def next_page(url):
             btn_url = 'https://www.ptt.cc' + btn.get('href')
             return btn_url
 
-
 #爬蟲function
 def find_key(url, keyword, curtime):
-    #config
+    #初始
     dict_ptt = {}
     count = 0
     top = 0
+    #update時間
     curdate = ' %d/%d' % (curtime.month , curtime.day)
     yesterdate = ' %d/%d' % ((curtime - oneday).month , (curtime - oneday).day)
+    #爬最新頁
     soup = getsoup(url)
     result = soup.find_all("div", class_="r-ent")
-
     for article in result:
         a_article = article.select_one("a")
         title_url = 'https://www.ptt.cc' + a_article.get('href')
         title_name = article.find("div", class_="title").text
         title_date = article.find("div" , class_ = "date").text
-        #日期判斷(今天加昨天的日期標籤都當作有效的，反正之後會抓時間標籤做一小時內的判斷)
+        #日期判斷(今天加昨天的日期標籤都當作有效的，會抓時間標籤做一小時內的判斷)
         if title_date == curdate or title_date == yesterdate:
             soup2 = getsoup(title_url)
             metaline = soup2.find_all("div" , class_ = "article-metaline")
@@ -73,39 +71,44 @@ def find_key(url, keyword, curtime):
                     title_time = datetime.strptime(title_time_text , '%a %b %d %H:%M:%S %Y')
                     #判斷時間
                     if title_time + onehour > curtime:
+                        #count為非置頂且一小時內的項目
                         count += 1
                         # 判斷關鍵字
-                        if keyword.upper() in title_name.upper():
+                        if keyword.upper() in title_name.upper() and '販售' in title_name:
                             dict_ptt.update({title_name : title_url})
         #置頂文章判斷
         else:
             top += 1
-
-    #需要爬第二頁
+    #置頂＋需要爬第二頁
     if len(result) <= count + top and top > 0:
         dict2 = find_key(next_page(url) , keyword ,curtime)
-
         dict_ptt.update(dict2)
-
     return dict_ptt
 
-
-def push_messager(data):
-    line_bot_api.push_message(your_id, TextSendMessage(text=data))
+def push_messager(data , user_id):
+    line_bot_api.push_message(user_id, TextSendMessage(text=data))
     return True
+
+def make_token(content, datasize, answer):
+    dataform = '一小時內%s的貼文數:' % content + '%d' % datasize
+    goodtoken = "{}\n{}".format(dataform, answer)
+    return goodtoken
+
+def dic_to_list(dict):
+    list = ""
+    for i in dict.items():
+        list += i[0]
+        list += i[1]
+    return list
 
 @sched.scheduled_job('cron', hour='0-23' , minute=0)
 def myjob():
-    answer = ""
-    curtime = datetime.fromtimestamp(time.time()) +timedelta(hours=8)
+    curtime = datetime.fromtimestamp(time.time()) + timedelta(hours=8)
     reply_dict = find_key(url, content, curtime)
-    for i in reply_dict.items():
-        answer += i[0]
-        answer += i[1]
-    datasize = '%d' %len(reply_dict)
-    dataform = '一小時內%s的貼文數:' % content + datasize
-    mytoken = "{}\n{}".format(dataform, answer)
-    push_messager(mytoken)
+    answer = dic_to_list(reply_dict)
+    mytoken = make_token(content, len(reply_dict), answer)
+    push_messager(mytoken , daisy_id)
+    push_messager(mytoken, your_id)
 
 sched.start()
 
