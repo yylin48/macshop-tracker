@@ -46,7 +46,7 @@ def find_key(url, keyword, curtime):
     dict_ptt = {}
     count = 0
     top = 0
-    #update時間
+    #調整時間格式
     curdate = ' %d/%d' % (curtime.month , curtime.day)
     yesterdate = ' %d/%d' % ((curtime - oneday).month , (curtime - oneday).day)
     #爬最新頁
