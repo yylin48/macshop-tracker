@@ -1,10 +1,11 @@
-import time, requests, datetime
+import time, requests, datetime ,logging, os
 from datetime import datetime , timedelta
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.blocking import BlockingScheduler
 from linebot import LineBotApi, WebhookHandler
 from env import *
 from linebot.models import TextSendMessage
+
 #scheduler
 sched = BlockingScheduler()
 
@@ -13,20 +14,41 @@ line_bot_api = LineBotApi(channel_token)
 ###secret
 handler = WebhookHandler(secret)
 
-
 #time
 onehour = timedelta(hours = 1)
 oneday = timedelta(days = 1)
 eighthour = timedelta(hours= 8)
 macshop_url = 'https://www.ptt.cc/bbs/macshop/index.html'
+keyword = "iphone"
+
+class Logger:
+    def __init__(self, path, filename):
+        if not os.path.exists(path + '/log'):
+            os.makedirs(path + '/log')
+        logging.basicConfig(level=logging.INFO,
+            format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+            datefmt = '%m-%d %H:%M:%S',
+            filename = path+'/log/'+filename)
+    def info(self, string):
+        print("[INFO] " + string)
+        logging.info(string)
+    def error(self, string):
+        print("[ERROR] " + string)
+        logging.error(string)
+
 
 class crawler():
-    def __init__(self , keyword ,url):
-        self.keyword = keyword
-        self.url = url
+    def __init__(self):
         self.user_id = []
         self.list = ""
         self.count = 0
+        self.logging = Logger(os.path.dirname(os.path.abspath(__file__)), datetime.now().strftime("macshop.%Y-%m.log"))
+
+    def get_keyword(self, keyword):
+        self.keyword = keyword
+
+    def get_url(self, url):
+        self.url = url
 
     def getsoup(self):
         res = requests.get(self.url)
@@ -59,7 +81,7 @@ class crawler():
             title_url = 'https://www.ptt.cc' + a_article.get('href')
             title_name = article.find("div", class_="title").text
             title_date = article.find("div", class_="date").text
-            # 日期判斷
+            # 日期判斷(今天加昨天的日期標籤都當作有效的，反正之後會抓時間標籤做一小時內的判斷)
             if title_date == self.curdate or title_date == self.yesterdate:
                 res2 = requests.get(title_url)
                 soup2 = BeautifulSoup(res2.text, 'html.parser')
@@ -89,23 +111,27 @@ class crawler():
             self.list += i[1]
             self.count += 1
 
-    def token(self):
+    def generate_token(self):
         dataform = '一小時內%s的貼文數:' % self.keyword + '%d' % self.count
-        goodtoken = "{}{}".format(dataform, self.list)
-        return goodtoken
-    
+        self.token = "{}{}".format(dataform, self.list)
+        self.logging.info(self.token)
+
     def line_bot_push(self):
         for id in self.user_id:
-            line_bot_api.push_message(id, TextSendMessage(text=self.token()))
-        return True
+            line_bot_api.push_message(id, TextSendMessage(text=self.token))
+            self.logging.info("push success")
 
-@sched.scheduled_job('cron', hour='0-23' , minute=0)
+@sched.scheduled_job('cron', hour='0-23', minute=0)
 def myjob():
-    a = crawler("iphone", macshop_url)
+    a = crawler()
+    a.get_keyword(keyword)
+    a.get_url(macshop_url)
     a.time_update()
     a.find_key()
+    #you can add several user id
     a.add_user_id(your_id)
-    a.add_user_id(daisy_id)
+    a.generate_token()
     a.line_bot_push()
-    
-sched.start()
+
+if __name__ == "__main__":
+    sched.start()
