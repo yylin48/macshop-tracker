@@ -29,3 +29,8 @@ build by yourself and run in background
     docker-compose build
     docker-compose up -d
 
+### other method
+
+you can also use Procfile & Pipfile to deploy on Heroku
+
+	
