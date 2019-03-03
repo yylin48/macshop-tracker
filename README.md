@@ -6,7 +6,7 @@ Macshop Tracker is a script to notice you following the newest post in ptt-macsh
     python==3.6
     apscheduler==3.5.3
     line-bot-sdk==1.8.0
-	beautifulsoup4==4.7.1
+    beautifulsoup4==4.7.1
     
 ## Installation
  [Docker](https://www.docker.com)
@@ -21,7 +21,15 @@ Filled in your channel token, secret, your line user id in env.py
 	channel_token = 'CHANNEL_TOKEN'
 	secret = 'SECRET'
 	your_id = 'YOUR_USER_ID'
-    
+	
+the file you need
+	
+	app.py
+	env.py
+	Dockerfile
+	docker-compose.yml
+	requirements.txt
+	
 ## Usage
 
 build by yourself and run in background
