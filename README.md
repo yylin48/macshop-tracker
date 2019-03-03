@@ -1,6 +1,6 @@
-personal macshop Tracker
+Personal Macshop Tracker
 ====
-Macshop Tracker is a script to notice you following the newest post in ptt-macshop every hour.
+Macshop Tracker is a script that notice you following the newest post in ptt-macshop every hour.
 
 ## dependencies
     python==3.6
@@ -32,7 +32,7 @@ the file you need
 	
 ## Usage
 
-build by yourself and run in background
+build and run in background
 
     docker-compose build
     docker-compose up -d
