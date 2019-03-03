@@ -59,7 +59,7 @@ class crawler():
             title_url = 'https://www.ptt.cc' + a_article.get('href')
             title_name = article.find("div", class_="title").text
             title_date = article.find("div", class_="date").text
-            # 日期判斷(今天加昨天的日期標籤都當作有效的，反正之後會抓時間標籤做一小時內的判斷)
+            # 日期判斷
             if title_date == self.curdate or title_date == self.yesterdate:
                 res2 = requests.get(title_url)
                 soup2 = BeautifulSoup(res2.text, 'html.parser')
@@ -93,6 +93,11 @@ class crawler():
         dataform = '一小時內%s的貼文數:' % self.keyword + '%d' % self.count
         goodtoken = "{}{}".format(dataform, self.list)
         return goodtoken
+    
+    def line_bot_push(self):
+        for id in self.user_id:
+            line_bot_api.push_message(id, TextSendMessage(text=self.token()))
+        return True
 
 @sched.scheduled_job('cron', hour='0-23' , minute=0)
 def myjob():
@@ -101,7 +106,6 @@ def myjob():
     a.find_key()
     a.add_user_id(your_id)
     a.add_user_id(daisy_id)
-    for id in a.user_id:
-        line_bot_api.push_message(id, TextSendMessage(text=a.token()))
-
+    a.line_bot_push()
+    
 sched.start()
