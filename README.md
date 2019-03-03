@@ -37,6 +37,9 @@ build by yourself and run in background
     docker-compose build
     docker-compose up -d
 
+
+![image](https://github.com/yylin48/macshop-tracker/blob/master/png/macshop-tracker-example.png)      
+
 ### other method
 
 you can also use Procfile & Pipfile to deploy on Heroku
