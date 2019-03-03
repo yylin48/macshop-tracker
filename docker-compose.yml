@@ -1,0 +1,11 @@
+version: '3'
+services:
+    crawler:
+        container_name: macshop-tracker
+        build:
+          context: ./
+          dockerfile: Dockerfile
+        command: python app.py
+        restart: always
+        volumes:
+          - .:/code
