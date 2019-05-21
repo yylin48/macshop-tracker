@@ -3,7 +3,7 @@ from datetime import datetime , timedelta
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.blocking import BlockingScheduler
 from linebot import LineBotApi, WebhookHandler
-from env import *
+from env import channel_token, secret, your_id
 from linebot.models import TextSendMessage
 
 #scheduler
@@ -129,7 +129,8 @@ def myjob():
     a.time_update()
     a.find_key()
     #you can add several user id
-    a.add_user_id(your_id)
+    for user in your_id:
+        a.add_user_id(user)
     a.generate_token()
     a.line_bot_push()
 
