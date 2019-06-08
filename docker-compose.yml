@@ -9,3 +9,12 @@ services:
         restart: always
         volumes:
           - .:/code
+        links:
+          - "database:database"
+    database:
+        image: mongo:4.0
+        container_name: mongo4
+        ports:
+            - "27017:27017"
+        volumes:
+            - "./data/mongo/data:/data/db"
