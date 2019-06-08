@@ -161,8 +161,8 @@ def insert():
         "line_id" : "U031511b58a367fa7cef991c67da41a0b",
         "keyword" : "iphone"
     }
-    db[colleciton].insert_one(obj1)
-    db[colleciton].insert_one(obj2)
+    db[collection].insert_one(obj1)
+    db[collection].insert_one(obj2)
 
 if __name__ == "__main__":
     #sched.start()
