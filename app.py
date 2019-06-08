@@ -144,5 +144,27 @@ def connect_mongo():
     db = client['test']
     return db
 
+def insert():
+    db = connect_mongo()
+    collection = 'user_list'
+    obj1 = {
+        "name" : "daisy",
+        "url" : "https://www.ptt.cc/bbs/Lifeismoney/index.html",
+        "category" : "情報",
+        "line_id" : "Ud36c4b6d86b1bd7d31a3cc7e0ab470e2",
+        "keyword" : "klook"
+    }
+    obj2 = {
+        "name" : "jim",
+        "url" : "https://www.ptt.cc/bbs/MacShop/index.html",
+        "category" : "販售",
+        "line_id" : "U031511b58a367fa7cef991c67da41a0b",
+        "keyword" : "iphone"
+    }
+    db[colleciton].insert_one(obj1)
+    db[colleciton].insert_one(obj2)
+
 if __name__ == "__main__":
-    sched.start()
+    #sched.start()
+    insert()
+
