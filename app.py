@@ -121,7 +121,7 @@ class crawler():
         line_bot_api.push_message(self.line_id, TextSendMessage(text=self.token))
         self.logging.info("push success")
 
-@sched.scheduled_job('cron', hour='0-23', minute=0)
+#@sched.scheduled_job('cron', hour='0-23', minute=0)
 def myjob():
     db = connect_mongo()
     collection = 'user_list'
@@ -144,6 +144,7 @@ def connect_mongo():
     db = client['test']
     return db
 
+@sched.scheduled_job('cron', hour='0-23', minute=48)
 def insert():
     db = connect_mongo()
     collection = 'user_list'
@@ -165,6 +166,6 @@ def insert():
     db[collection].insert_one(obj2)
 
 if __name__ == "__main__":
-    #sched.start()
-    insert()
+    sched.start()
+    #insert()
 
