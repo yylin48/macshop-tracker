@@ -2,16 +2,18 @@
 import os, json, time, datetime, logging
 from pymongo import MongoClient
 from flask import (Flask, make_response, render_template, jsonify)
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 def connect_mongo():
     client = MongoClient('database',27017)
     db = client['test']
     return db
 
-@app.route('/')
-def hello():
+@app.route('/show')
+def show():
     db = connect_mongo()
     collection = 'user_list'
     user = db[collection].find()
@@ -19,6 +21,8 @@ def hello():
     for item in user:
         obj = {
             'name' : item['name'],
+            'category': item['category'],
+            'keyword' : item['keyword'],
             'url' : item['url'],
             'line_id' : item['line_id']
         }
