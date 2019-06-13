@@ -143,7 +143,7 @@ def test(keyword, url, category, line_id):
     if a.count > 0:
         a.generate_token()
         a.line_bot_push()
-
+"""
 def insert():
     db = connect_mongo()
     collection = 'user_list'
@@ -163,7 +163,7 @@ def insert():
     }
     db[collection].insert_one(obj1)
     db[collection].insert_one(obj2)
-
+"""
 if __name__ == "__main__":
     sched.start()
 
