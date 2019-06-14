@@ -39,14 +39,14 @@ class Logger:
 
 
 class crawler():
-    def __init__(self, keyword, url, category, line_id):
+    def __init__(self, keyword, url, line_id):
         self.line_id = line_id
         self.list = ""
         self.count = 0
         self.logging = Logger(os.path.dirname(os.path.abspath(__file__)), datetime.now().strftime("macshop.%Y-%m.log"))
         self.keyword = keyword
-        self.url = url
-        self.category = category
+        self.url = 'https://www.ptt.cc/bbs/'+ url + '/index.html'
+
 
 
     def getsoup(self):
@@ -99,8 +99,13 @@ class crawler():
                         if title_time + onehour > self.curtime:
                             count += 1
                             # 判斷關鍵字
-                            if self.keyword.upper() in title_name.upper() and self.category in title_name:
+                            flag = 0
+                            for keyword in self.keyword:
+                                if keyword.upper() not in title_name.upper():
+                                    flag = 1
+                            if flag == 0:
                                 dict_ptt.update({title_name: title_url})
+                                    
             # 置頂文章判斷
             else:
                 top += 1
@@ -131,39 +136,18 @@ def connect_mongo():
 def myjob():
     db = connect_mongo()
     collection = 'user_list'
-    user = db[collection].find()
+    user = db[collection].find({'is_delete':False})
     for item in user:
-        test(url=item['url'], keyword=item['keyword'], category=item['category'], line_id=item['line_id'])
+        test(url=item['url'], keyword=item['keyword'], line_id=item['line_id'])
 
-
-def test(keyword, url, category, line_id):
-    a = crawler(keyword=keyword, url=url, category=category, line_id=line_id)
+def test(keyword, url, line_id):
+    a = crawler(keyword=keyword, url=url, line_id=line_id)
     a.time_update()
     a.find_key()
     if a.count > 0:
         a.generate_token()
         a.line_bot_push()
-"""
-def insert():
-    db = connect_mongo()
-    collection = 'user_list'
-    obj1 = {
-        "name" : "daisy",
-        "url" : "https://www.ptt.cc/bbs/Lifeismoney/index.html",
-        "category" : "情報",
-        "line_id" : "Ud36c4b6d86b1bd7d31a3cc7e0ab470e2",
-        "keyword" : "klook"
-    }
-    obj2 = {
-        "name" : "jim",
-        "url" : "https://www.ptt.cc/bbs/MacShop/index.html",
-        "category" : "販售",
-        "line_id" : "U031511b58a367fa7cef991c67da41a0b",
-        "keyword" : "iphone"
-    }
-    db[collection].insert_one(obj1)
-    db[collection].insert_one(obj2)
-"""
+
 if __name__ == "__main__":
     sched.start()
 
