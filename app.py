@@ -5,6 +5,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from linebot import LineBotApi, WebhookHandler
 from env import channel_token, secret, your_id
 from linebot.models import TextSendMessage
+from pymongo import MongoClient
 
 #scheduler
 sched = BlockingScheduler()
@@ -18,8 +19,8 @@ handler = WebhookHandler(secret)
 onehour = timedelta(hours = 1)
 oneday = timedelta(days = 1)
 eighthour = timedelta(hours= 8)
-macshop_url = 'https://www.ptt.cc/bbs/macshop/index.html'
-keyword = "iphone"
+target_url = 'https://www.ptt.cc/bbs/Lifeismoney/index.html'
+keyword = "klook"
 
 class Logger:
     def __init__(self, path, filename):
@@ -38,17 +39,15 @@ class Logger:
 
 
 class crawler():
-    def __init__(self):
-        self.user_id = []
+    def __init__(self, keyword, url, line_id):
+        self.line_id = line_id
         self.list = ""
         self.count = 0
         self.logging = Logger(os.path.dirname(os.path.abspath(__file__)), datetime.now().strftime("macshop.%Y-%m.log"))
-
-    def get_keyword(self, keyword):
         self.keyword = keyword
+        self.url = 'https://www.ptt.cc/bbs/'+ url + '/index.html'
 
-    def get_url(self, url):
-        self.url = url
+
 
     def getsoup(self):
         res = requests.get(self.url)
@@ -78,6 +77,8 @@ class crawler():
         result = self.getsoup().find_all("div", class_="r-ent")
         for article in result:
             a_article = article.select_one("a")
+            if a_article is None:
+                continue
             title_url = 'https://www.ptt.cc' + a_article.get('href')
             title_name = article.find("div", class_="title").text
             title_date = article.find("div", class_="date").text
@@ -98,8 +99,13 @@ class crawler():
                         if title_time + onehour > self.curtime:
                             count += 1
                             # 判斷關鍵字
-                            if self.keyword.upper() in title_name.upper() and '販售' in title_name:
+                            flag = 0
+                            for keyword in self.keyword:
+                                if keyword.upper() not in title_name.upper():
+                                    flag = 1
+                            if flag == 0:
                                 dict_ptt.update({title_name: title_url})
+                                    
             # 置頂文章判斷
             else:
                 top += 1
@@ -117,22 +123,31 @@ class crawler():
         self.logging.info(self.token)
 
     def line_bot_push(self):
-        for id in self.user_id:
-            line_bot_api.push_message(id, TextSendMessage(text=self.token))
-            self.logging.info("push success")
+        line_bot_api.push_message(self.line_id, TextSendMessage(text=self.token))
+        self.logging.info("push success")
+
+#connect mongo
+def connect_mongo():
+    client = MongoClient('database',27017)
+    db = client['test']
+    return db
 
 @sched.scheduled_job('cron', hour='0-23', minute=0)
 def myjob():
-    a = crawler()
-    a.get_keyword(keyword)
-    a.get_url(macshop_url)
+    db = connect_mongo()
+    collection = 'user_list'
+    user = db[collection].find({'is_delete':False})
+    for item in user:
+        test(url=item['url'], keyword=item['keyword'], line_id=item['line_id'])
+
+def test(keyword, url, line_id):
+    a = crawler(keyword=keyword, url=url, line_id=line_id)
     a.time_update()
     a.find_key()
-    #you can add several user id
-    for user in your_id:
-        a.add_user_id(user)
-    a.generate_token()
-    a.line_bot_push()
+    if a.count > 0:
+        a.generate_token()
+        a.line_bot_push()
 
 if __name__ == "__main__":
     sched.start()
+
